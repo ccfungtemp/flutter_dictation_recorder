@@ -1,0 +1,44 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Additional lint rules for stricter code quality
+    avoid_print: true # Prefer logging package over print
+    prefer_single_quotes: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    always_declare_return_types: true
+    always_put_required_named_parameters_first: true
+    prefer_const_constructors: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    recursive_getters: true
+    sized_box_for_whitespace: true
+    no_leading_underscores_for_local_identifiers: false # Allow _ for local variables, e.g. for Riverpod auto-generated classes
+    unnecessary_parenthesis: true
+    use_named_constants: true
+    no_adjacent_strings_in_list: true
+    no_duplicate_case_values: true
+    no_self_assignments: true
+    avoid_dynamic_calls: true # Avoid dynamic calls
+    avoid_empty_else: true # Avoid empty else statements
+    avoid_function_literals_in_foreach_calls: true # Avoid function literals in foreach calls
+    avoid_init_to_null: true # Avoid initializing fields to null
+    avoid_multiple_declarations_per_line: true # Avoid multiple declarations per line
+    avoid_positional_boolean_parameters: true # Avoid positional boolean parameters
+    avoid_redundant_argument_values: true # Avoid redundant argument values
+    avoid_relative_lib_imports: true # Avoid relative lib imports
+    avoid_renaming_method_parameters: true # Avoid renaming method parameters
+    avoid_returning_this: true # Avoid returning this
+    avoid_unnecessary_containers: true # Avoid unnecessary containers
+    avoid_unused_constructor_parameters: true # Avoid unused constructor parameters
+    avoid_void_async: true # Avoid void async
+    camel_case_extensions: true # Camel case extensions
+    curly_braces_in_flow_control_structures: true # Curly braces in flow control structures
+    empty_catches: true # Empty catches
+    empty_constructor_bodies: true # Empty constructor bodies
+    empty_statements: true # Empty statements
+    hash_and_equals: true # Hash and equals
+    no_logic_in_create_state: true # No logic in create state
+    require_trailing_commas: true # Require trailing commas
+    prefer_relative_imports: true # Prefer relative imports
