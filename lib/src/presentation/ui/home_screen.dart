@@ -37,15 +37,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
-                  ...(dictationsAsync.maybeWhen(
+                  ...dictationsAsync.maybeWhen(
                     data: (dictations) => dictations
                         .map((d) => d.categoryName)
                         .toSet()
                         .toList()
                         ..sort(),
                     orElse: () => <String>[],
-                  ))
-                      .map(
+                  ).map(
                     (category) => DropdownMenuItem<String?>(
                       value: category,
                       child: Text(

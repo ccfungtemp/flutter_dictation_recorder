@@ -15,57 +15,100 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
 
     _audioService.playerStateStream.listen((playerState) async {
       developer.log('AudioPlayerNotifier: PlayerState changed to $playerState');
-      // Handle playback completion
-      if (playerState == PlayerState.completed) {
-        developer.log('AudioPlayerNotifier: Detected PlayerState.completed');
-        // If there's a current dictation and recording, try to play the next one
-        if (state.currentDictationId != null &&
-            state.currentRecordingIndex != null) {
-          final dictations = ref
-              .read(dictationsNotifierProvider)
-              .value; // Get all dictations
-          final currentDictation = dictations?.firstWhere(
-            (d) => d.id == state.currentDictationId,
-          );
-
-          if (currentDictation != null) {
-            final nextIndex = state.currentRecordingIndex! + 1;
-            developer.log(
-              'AudioPlayerNotifier: Attempting to play next recording. Current Index: ${state.currentRecordingIndex}, Next Index: $nextIndex, Total Recordings: ${currentDictation.recordings.length}',
-            );
-            if (nextIndex < currentDictation.recordings.length) {
-              await _playRecording(
-                currentDictation.id,
-                nextIndex,
-                currentDictation.recordings[nextIndex].filePath,
-              );
-            } else {
-              // All recordings for this dictation have been played
-              developer.log(
-                'AudioPlayerNotifier: All recordings played. Stopping.',
-              );
+      try {
+        // Handle playback completion
+        if (playerState == PlayerState.completed) {
+          developer.log('AudioPlayerNotifier: Detected PlayerState.completed');
+          // If there's a current dictation and recording, try to play the next one
+          if (state.currentDictationId != null &&
+              state.currentRecordingIndex != null &&
+              state.isSequentialPlaying) {
+            final dictations = ref
+                .read(dictationsNotifierProvider)
+                .value; // Get all dictations
+            
+            if (dictations == null || dictations.isEmpty) {
+              developer.log('AudioPlayerNotifier: No dictations available');
               state = state.copyWith(
                 playerState: PlayerState.stopped,
                 playingFilePath: null,
                 currentDictationId: null,
                 currentRecordingIndex: null,
+                isSequentialPlaying: false,
+              );
+              return;
+            }
+            
+            final currentDictation = dictations.firstWhereOrNull(
+              (d) => d.id == state.currentDictationId,
+            );
+
+            if (currentDictation != null) {
+              final nextIndex = state.currentRecordingIndex! + 1;
+              developer.log(
+                'AudioPlayerNotifier: Attempting to play next recording. Current Index: ${state.currentRecordingIndex}, Next Index: $nextIndex, Total Recordings: ${currentDictation.recordings.length}',
+              );
+              if (nextIndex < currentDictation.recordings.length) {
+                await _playRecording(
+                  currentDictation.id,
+                  nextIndex,
+                  currentDictation.recordings[nextIndex].filePath,
+                );
+              } else {
+                // All recordings for this dictation have been played
+                developer.log(
+                  'AudioPlayerNotifier: All recordings played. Stopping.',
+                );
+                state = state.copyWith(
+                  playerState: PlayerState.stopped,
+                  playingFilePath: null,
+                  currentDictationId: null,
+                  currentRecordingIndex: null,
+                  isSequentialPlaying: false,
+                );
+              }
+            } else {
+              developer.log('AudioPlayerNotifier: Current dictation not found');
+              state = state.copyWith(
+                playerState: PlayerState.stopped,
+                playingFilePath: null,
+                currentDictationId: null,
+                currentRecordingIndex: null,
+                isSequentialPlaying: false,
               );
             }
+          } else if (playerState == PlayerState.completed && !state.isSequentialPlaying) {
+            // Single recording completed, stop
+            state = state.copyWith(
+              playerState: PlayerState.stopped,
+              playingFilePath: null,
+              currentDictationId: null,
+              currentRecordingIndex: null,
+            );
           }
+        } else if (playerState == PlayerState.stopped) {
+          developer.log('AudioPlayerNotifier: Detected PlayerState.stopped');
+          state = state.copyWith(
+            playerState: playerState,
+            playingFilePath: null,
+            currentDictationId: null,
+            currentRecordingIndex: null,
+          );
+        } else {
+          developer.log(
+            'AudioPlayerNotifier: Detected PlayerState.playing/paused. Current state: $state',
+          );
+          state = state.copyWith(playerState: playerState);
         }
-      } else if (playerState == PlayerState.stopped) {
-        developer.log('AudioPlayerNotifier: Detected PlayerState.stopped');
+      } catch (e, stackTrace) {
+        developer.log('AudioPlayerNotifier: Error in playerStateStream listener: $e\n$stackTrace');
         state = state.copyWith(
-          playerState: playerState,
+          playerState: PlayerState.stopped,
           playingFilePath: null,
           currentDictationId: null,
           currentRecordingIndex: null,
+          isSequentialPlaying: false,
         );
-      } else {
-        developer.log(
-          'AudioPlayerNotifier: Detected PlayerState.playing/paused. Current state: $state',
-        );
-        state = state.copyWith(playerState: playerState);
       }
     });
 
@@ -77,43 +120,101 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     int recordingIndex,
     String filePath,
   ) async {
-    developer.log(
-      'AudioPlayerNotifier: _playRecording called for Dictation ID: $dictationId, Index: $recordingIndex, File: $filePath',
-    );
-    // Stop any currently playing audio
-    if (state.playingFilePath != null && state.playingFilePath != filePath) {
-      await _audioService.stopPlayback();
-    }
+    try {
+      developer.log(
+        'AudioPlayerNotifier: _playRecording called for Dictation ID: $dictationId, Index: $recordingIndex, File: $filePath',
+      );
+      // Stop any currently playing audio
+      if (state.playingFilePath != null && state.playingFilePath != filePath) {
+        await _audioService.stopPlayback();
+      }
 
-    state = state.copyWith(
-      playingFilePath: filePath,
-      currentDictationId: dictationId,
-      currentRecordingIndex: recordingIndex,
-      playerState: PlayerState.playing,
-    );
-    await _audioService.playRecording(filePath);
+      state = state.copyWith(
+        playingFilePath: filePath,
+        currentDictationId: dictationId,
+        currentRecordingIndex: recordingIndex,
+        playerState: PlayerState.playing,
+      );
+      await _audioService.playRecording(filePath);
+    } catch (e, stackTrace) {
+      developer.log('AudioPlayerNotifier: Error in _playRecording: $e\n$stackTrace');
+      // 播放失敗時停止並重置狀態
+      state = state.copyWith(
+        playerState: PlayerState.stopped,
+        playingFilePath: null,
+        currentDictationId: null,
+        currentRecordingIndex: null,
+        isSequentialPlaying: false,
+      );
+      rethrow; // 重新拋出異常讓上層處理
+    }
   }
 
   Future<void> playAllRecordings(
     String dictationId, {
     int startIndex = 0,
   }) async {
+    try {
+      developer.log(
+        'AudioPlayerNotifier: playAllRecordings called for Dictation ID: $dictationId, Start Index: $startIndex',
+      );
+      final dictations = ref
+          .read(dictationsNotifierProvider)
+          .value; // Get all dictations
+      
+      if (dictations == null || dictations.isEmpty) {
+        throw Exception('No dictations available');
+      }
+      
+      final dictation = dictations.firstWhereOrNull((d) => d.id == dictationId);
+
+      if (dictation != null && dictation.recordings.isNotEmpty) {
+        if (startIndex < dictation.recordings.length) {
+          state = state.copyWith(isSequentialPlaying: true);
+          await _playRecording(
+            dictationId,
+            startIndex,
+            dictation.recordings[startIndex].filePath,
+          );
+        }
+      } else {
+        throw Exception('Dictation not found or has no recordings');
+      }
+    } catch (e, stackTrace) {
+      developer.log('AudioPlayerNotifier: Error in playAllRecordings: $e\n$stackTrace');
+      state = state.copyWith(
+        playerState: PlayerState.stopped,
+        playingFilePath: null,
+        currentDictationId: null,
+        currentRecordingIndex: null,
+        isSequentialPlaying: false,
+      );
+      rethrow;
+    }
+  }
+
+  /// 播放單個錄音，不進入順序播放模式
+  Future<void> playSingleRecording(
+    String dictationId,
+    int recordingIndex,
+  ) async {
     developer.log(
-      'AudioPlayerNotifier: playAllRecordings called for Dictation ID: $dictationId, Start Index: $startIndex',
+      'AudioPlayerNotifier: playSingleRecording called for Dictation ID: $dictationId, Index: $recordingIndex',
     );
     final dictations = ref
         .read(dictationsNotifierProvider)
         .value; // Get all dictations
-    final dictation = dictations?.firstWhere((d) => d.id == dictationId);
+    final dictation = dictations?.firstWhereOrNull((d) => d.id == dictationId);
 
-    if (dictation != null && dictation.recordings.isNotEmpty) {
-      if (startIndex < dictation.recordings.length) {
-        await _playRecording(
-          dictationId,
-          startIndex,
-          dictation.recordings[startIndex].filePath,
-        );
-      }
+    if (dictation != null && 
+        recordingIndex >= 0 && 
+        recordingIndex < dictation.recordings.length) {
+      state = state.copyWith(isSequentialPlaying: false);
+      await _playRecording(
+        dictationId,
+        recordingIndex,
+        dictation.recordings[recordingIndex].filePath,
+      );
     }
   }
 
@@ -127,7 +228,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     }
 
     final dictations = ref.read(dictationsNotifierProvider).value;
-    final currentDictation = dictations?.firstWhere(
+    final currentDictation = dictations?.firstWhereOrNull(
       (d) => d.id == state.currentDictationId,
     );
 
@@ -159,7 +260,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     }
 
     final dictations = ref.read(dictationsNotifierProvider).value;
-    final currentDictation = dictations?.firstWhere(
+    final currentDictation = dictations?.firstWhereOrNull(
       (d) => d.id == state.currentDictationId,
     );
 
@@ -184,6 +285,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   Future<void> pause() async {
     developer.log('AudioPlayerNotifier: pause called. Current state: $state');
     await _audioService.pausePlayback();
+    // 暫停時不改變isSequentialPlaying，這樣resume時才能繼續順序播放
     state = state.copyWith(playerState: PlayerState.paused);
   }
 
@@ -193,12 +295,14 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
     if (state.playerState == PlayerState.paused &&
         state.playingFilePath != null) {
       await _audioService.playRecording(state.playingFilePath!);
+      // 恢復時保留isSequentialPlaying的值
       state = state.copyWith(playerState: PlayerState.playing);
     } else if (state.playerState == PlayerState.stopped &&
-        state.currentDictationId != null) {
-      // If stopped, but we have a dictation context, restart from current index
+        state.currentDictationId != null &&
+        state.isSequentialPlaying) {
+      // If stopped but in sequential mode, restart from current index
       developer.log(
-        'AudioPlayerNotifier: resume from stopped state with context. Starting from index ${state.currentRecordingIndex ?? 0}',
+        'AudioPlayerNotifier: resume from stopped state with sequential mode. Starting from index ${state.currentRecordingIndex ?? 0}',
       );
       await playAllRecordings(
         state.currentDictationId!,
@@ -215,6 +319,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       playingFilePath: null,
       currentDictationId: null,
       currentRecordingIndex: null,
+      isSequentialPlaying: false,
     );
   }
 
@@ -227,7 +332,7 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
       'AudioPlayerNotifier: setCurrentRecording called for Dictation ID: $dictationId, Index: $recordingIndex. Current state: $state',
     );
     final dictations = ref.read(dictationsNotifierProvider).value;
-    final dictation = dictations?.firstWhere((d) => d.id == dictationId);
+    final dictation = dictations?.firstWhereOrNull((d) => d.id == dictationId);
 
     if (dictation != null && dictation.recordings.isNotEmpty) {
       if (recordingIndex >= 0 && recordingIndex < dictation.recordings.length) {

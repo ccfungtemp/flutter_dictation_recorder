@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../domain/audio_service.dart';
 import '../domain/recording.dart';
+import '../domain/audio_service_exception.dart';
 import 'package:just_audio/just_audio.dart' as just_audio;
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
@@ -61,7 +62,7 @@ class RecordAudioService implements AudioService {
         path: _currentRecordingPath!,
       );
     } else {
-      throw Exception('Recording permission not granted');
+      throw AudioServiceException('Recording permission not granted');
     }
   }
 
@@ -69,7 +70,7 @@ class RecordAudioService implements AudioService {
   Future<Recording> stopRecording() async {
     final path = await _audioRecorder.stop();
     if (path == null) {
-      throw Exception('Failed to stop recording or retrieve file path.');
+      throw AudioServiceException('Failed to stop recording or retrieve file path.');
     }
 
     final duration = await _audioPlayer.setFilePath(
@@ -78,7 +79,7 @@ class RecordAudioService implements AudioService {
     await _audioPlayer.stop(); // Stop playback just after getting duration
 
     if (duration == null) {
-      throw Exception('Could not get duration for recorded audio.');
+      throw AudioServiceException('Could not get duration for recorded audio.');
     }
 
     return Recording(
@@ -92,10 +93,14 @@ class RecordAudioService implements AudioService {
   @override
   Future<void> playRecording(String filePath) async {
     try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw AudioServiceException('Recording file does not exist: $filePath');
+      }
       await _audioPlayer.setFilePath(filePath);
       await _audioPlayer.play();
     } catch (e) {
-      throw Exception('Error playing recording: $e');
+      throw AudioServiceException('Error playing recording: $e');
     }
   }
 
@@ -112,6 +117,10 @@ class RecordAudioService implements AudioService {
 
   @override
   Future<void> setFilePath(String filePath) async {
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw AudioServiceException('Audio file does not exist: $filePath');
+    }
     await _audioPlayer.setFilePath(filePath);
   }
 

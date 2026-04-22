@@ -10,5 +10,6 @@ abstract class AudioPlayerState with _$AudioPlayerState {
     String? playingFilePath,
     String? currentDictationId, // New field
     int? currentRecordingIndex, // New field
+    @Default(false) bool isSequentialPlaying, // New field
   }) = _AudioPlayerState;
 }

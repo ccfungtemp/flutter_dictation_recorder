@@ -87,16 +87,25 @@ class DictationDetailScreen extends ConsumerWidget {
                                 ? Icons.pause_circle_filled
                                 : Icons.play_circle_filled,
                           ),
-                          onPressed: () {
-                            if (isPlaying) {
-                              audioPlayerNotifier.pause();
-                            } else if (isPaused) {
-                              audioPlayerNotifier.resume();
-                            } else {
-                              audioPlayerNotifier.playAllRecordings(
-                                dictationId,
-                                startIndex: index,
-                              );
+                          onPressed: () async {
+                            try {
+                              if (isPlaying) {
+                                await audioPlayerNotifier.pause();
+                              } else if (isPaused) {
+                                await audioPlayerNotifier.resume();
+                              } else {
+                                // 只播放這個錄音，不進入順序播放模式
+                                await audioPlayerNotifier.playSingleRecording(
+                                  dictationId,
+                                  index,
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('播放失敗: $e')),
+                                );
+                              }
                             }
                           },
                         ),
@@ -166,30 +175,46 @@ class DictationDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.skip_previous),
               onPressed: (isStopped && !isPlayingThisDictation) || (audioPlayerState.currentRecordingIndex == 0)
                   ? null
-                  : () {
-                      if (isPlaying || isPaused) {
-                        audioPlayerNotifier.playPrevious();
-                      } else {
-                        // If stopped, just navigate to the previous recording without playing
-                        final newIndex = (audioPlayerState.currentRecordingIndex ?? 0) - 1;
-                        audioPlayerNotifier.setCurrentRecording(dictationId, newIndex.clamp(0, totalRecordings - 1));
+                  : () async {
+                      try {
+                        if (isPlaying || isPaused) {
+                          await audioPlayerNotifier.playPrevious();
+                        } else {
+                          // If stopped, just navigate to the previous recording without playing
+                          final newIndex = (audioPlayerState.currentRecordingIndex ?? 0) - 1;
+                          await audioPlayerNotifier.setCurrentRecording(dictationId, newIndex.clamp(0, totalRecordings - 1));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('操作失敗: $e')),
+                          );
+                        }
                       }
                     },
             ),
             const SizedBox(width: 16),
             FloatingActionButton(
               heroTag: 'main_playback_button',
-              onPressed: () {
-                if (isPlaying) {
-                  audioPlayerNotifier.pause();
-                } else if (isPaused) {
-                  audioPlayerNotifier.resume();
-                } else {
-                  // If stopped, start from the beginning or current index if context exists
-                  final startIndex = isPlayingThisDictation && audioPlayerState.currentRecordingIndex != null
-                      ? audioPlayerState.currentRecordingIndex!
-                      : 0;
-                  audioPlayerNotifier.playAllRecordings(dictationId, startIndex: startIndex);
+              onPressed: () async {
+                try {
+                  if (isPlaying) {
+                    await audioPlayerNotifier.pause();
+                  } else if (isPaused) {
+                    await audioPlayerNotifier.resume();
+                  } else {
+                    // If stopped, start from the beginning or current index if context exists
+                    final startIndex = isPlayingThisDictation && audioPlayerState.currentRecordingIndex != null
+                        ? audioPlayerState.currentRecordingIndex!
+                        : 0;
+                    await audioPlayerNotifier.playAllRecordings(dictationId, startIndex: startIndex);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('播放失敗: $e')),
+                    );
+                  }
                 }
               },
               child: Icon(mainButtonIcon, size: 48),
@@ -200,13 +225,21 @@ class DictationDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.skip_next),
               onPressed: (isStopped && !isPlayingThisDictation) || (audioPlayerState.currentRecordingIndex == totalRecordings - 1)
                   ? null
-                  : () {
-                      if (isPlaying || isPaused) {
-                        audioPlayerNotifier.playNext();
-                      } else {
-                        // If stopped, just navigate to the next recording without playing
-                        final newIndex = (audioPlayerState.currentRecordingIndex ?? -1) + 1;
-                        audioPlayerNotifier.setCurrentRecording(dictationId, newIndex.clamp(0, totalRecordings - 1));
+                  : () async {
+                      try {
+                        if (isPlaying || isPaused) {
+                          await audioPlayerNotifier.playNext();
+                        } else {
+                          // If stopped, just navigate to the next recording without playing
+                          final newIndex = (audioPlayerState.currentRecordingIndex ?? -1) + 1;
+                          await audioPlayerNotifier.setCurrentRecording(dictationId, newIndex.clamp(0, totalRecordings - 1));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('操作失敗: $e')),
+                          );
+                        }
                       }
                     },
             ),

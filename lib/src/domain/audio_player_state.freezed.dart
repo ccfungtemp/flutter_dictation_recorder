@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 mixin _$AudioPlayerState {
 
  PlayerState get playerState; String? get playingFilePath; String? get currentDictationId;// New field
- int? get currentRecordingIndex;
+ int? get currentRecordingIndex;// New field
+ bool get isSequentialPlaying;
 /// Create a copy of AudioPlayerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +27,16 @@ $AudioPlayerStateCopyWith<AudioPlayerState> get copyWith => _$AudioPlayerStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AudioPlayerState&&(identical(other.playerState, playerState) || other.playerState == playerState)&&(identical(other.playingFilePath, playingFilePath) || other.playingFilePath == playingFilePath)&&(identical(other.currentDictationId, currentDictationId) || other.currentDictationId == currentDictationId)&&(identical(other.currentRecordingIndex, currentRecordingIndex) || other.currentRecordingIndex == currentRecordingIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AudioPlayerState&&(identical(other.playerState, playerState) || other.playerState == playerState)&&(identical(other.playingFilePath, playingFilePath) || other.playingFilePath == playingFilePath)&&(identical(other.currentDictationId, currentDictationId) || other.currentDictationId == currentDictationId)&&(identical(other.currentRecordingIndex, currentRecordingIndex) || other.currentRecordingIndex == currentRecordingIndex)&&(identical(other.isSequentialPlaying, isSequentialPlaying) || other.isSequentialPlaying == isSequentialPlaying));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,playerState,playingFilePath,currentDictationId,currentRecordingIndex);
+int get hashCode => Object.hash(runtimeType,playerState,playingFilePath,currentDictationId,currentRecordingIndex,isSequentialPlaying);
 
 @override
 String toString() {
-  return 'AudioPlayerState(playerState: $playerState, playingFilePath: $playingFilePath, currentDictationId: $currentDictationId, currentRecordingIndex: $currentRecordingIndex)';
+  return 'AudioPlayerState(playerState: $playerState, playingFilePath: $playingFilePath, currentDictationId: $currentDictationId, currentRecordingIndex: $currentRecordingIndex, isSequentialPlaying: $isSequentialPlaying)';
 }
 
 
@@ -46,7 +47,7 @@ abstract mixin class $AudioPlayerStateCopyWith<$Res>  {
   factory $AudioPlayerStateCopyWith(AudioPlayerState value, $Res Function(AudioPlayerState) _then) = _$AudioPlayerStateCopyWithImpl;
 @useResult
 $Res call({
- PlayerState playerState, String? playingFilePath, String? currentDictationId, int? currentRecordingIndex
+ PlayerState playerState, String? playingFilePath, String? currentDictationId, int? currentRecordingIndex, bool isSequentialPlaying
 });
 
 
@@ -63,13 +64,14 @@ class _$AudioPlayerStateCopyWithImpl<$Res>
 
 /// Create a copy of AudioPlayerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? playerState = null,Object? playingFilePath = freezed,Object? currentDictationId = freezed,Object? currentRecordingIndex = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? playerState = null,Object? playingFilePath = freezed,Object? currentDictationId = freezed,Object? currentRecordingIndex = freezed,Object? isSequentialPlaying = null,}) {
   return _then(_self.copyWith(
 playerState: null == playerState ? _self.playerState : playerState // ignore: cast_nullable_to_non_nullable
 as PlayerState,playingFilePath: freezed == playingFilePath ? _self.playingFilePath : playingFilePath // ignore: cast_nullable_to_non_nullable
 as String?,currentDictationId: freezed == currentDictationId ? _self.currentDictationId : currentDictationId // ignore: cast_nullable_to_non_nullable
 as String?,currentRecordingIndex: freezed == currentRecordingIndex ? _self.currentRecordingIndex : currentRecordingIndex // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,isSequentialPlaying: null == isSequentialPlaying ? _self.isSequentialPlaying : isSequentialPlaying // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -154,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex,  bool isSequentialPlaying)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AudioPlayerState() when $default != null:
-return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex);case _:
+return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex,_that.isSequentialPlaying);case _:
   return orElse();
 
 }
@@ -175,10 +177,10 @@ return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex,  bool isSequentialPlaying)  $default,) {final _that = this;
 switch (_that) {
 case _AudioPlayerState():
-return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex);case _:
+return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex,_that.isSequentialPlaying);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +197,10 @@ return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PlayerState playerState,  String? playingFilePath,  String? currentDictationId,  int? currentRecordingIndex,  bool isSequentialPlaying)?  $default,) {final _that = this;
 switch (_that) {
 case _AudioPlayerState() when $default != null:
-return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex);case _:
+return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId,_that.currentRecordingIndex,_that.isSequentialPlaying);case _:
   return null;
 
 }
@@ -210,7 +212,7 @@ return $default(_that.playerState,_that.playingFilePath,_that.currentDictationId
 
 
 class _AudioPlayerState implements AudioPlayerState {
-  const _AudioPlayerState({this.playerState = PlayerState.stopped, this.playingFilePath, this.currentDictationId, this.currentRecordingIndex});
+  const _AudioPlayerState({this.playerState = PlayerState.stopped, this.playingFilePath, this.currentDictationId, this.currentRecordingIndex, this.isSequentialPlaying = false});
   
 
 @override@JsonKey() final  PlayerState playerState;
@@ -218,6 +220,8 @@ class _AudioPlayerState implements AudioPlayerState {
 @override final  String? currentDictationId;
 // New field
 @override final  int? currentRecordingIndex;
+// New field
+@override@JsonKey() final  bool isSequentialPlaying;
 
 /// Create a copy of AudioPlayerState
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +233,16 @@ _$AudioPlayerStateCopyWith<_AudioPlayerState> get copyWith => __$AudioPlayerStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AudioPlayerState&&(identical(other.playerState, playerState) || other.playerState == playerState)&&(identical(other.playingFilePath, playingFilePath) || other.playingFilePath == playingFilePath)&&(identical(other.currentDictationId, currentDictationId) || other.currentDictationId == currentDictationId)&&(identical(other.currentRecordingIndex, currentRecordingIndex) || other.currentRecordingIndex == currentRecordingIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AudioPlayerState&&(identical(other.playerState, playerState) || other.playerState == playerState)&&(identical(other.playingFilePath, playingFilePath) || other.playingFilePath == playingFilePath)&&(identical(other.currentDictationId, currentDictationId) || other.currentDictationId == currentDictationId)&&(identical(other.currentRecordingIndex, currentRecordingIndex) || other.currentRecordingIndex == currentRecordingIndex)&&(identical(other.isSequentialPlaying, isSequentialPlaying) || other.isSequentialPlaying == isSequentialPlaying));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,playerState,playingFilePath,currentDictationId,currentRecordingIndex);
+int get hashCode => Object.hash(runtimeType,playerState,playingFilePath,currentDictationId,currentRecordingIndex,isSequentialPlaying);
 
 @override
 String toString() {
-  return 'AudioPlayerState(playerState: $playerState, playingFilePath: $playingFilePath, currentDictationId: $currentDictationId, currentRecordingIndex: $currentRecordingIndex)';
+  return 'AudioPlayerState(playerState: $playerState, playingFilePath: $playingFilePath, currentDictationId: $currentDictationId, currentRecordingIndex: $currentRecordingIndex, isSequentialPlaying: $isSequentialPlaying)';
 }
 
 
@@ -249,7 +253,7 @@ abstract mixin class _$AudioPlayerStateCopyWith<$Res> implements $AudioPlayerSta
   factory _$AudioPlayerStateCopyWith(_AudioPlayerState value, $Res Function(_AudioPlayerState) _then) = __$AudioPlayerStateCopyWithImpl;
 @override @useResult
 $Res call({
- PlayerState playerState, String? playingFilePath, String? currentDictationId, int? currentRecordingIndex
+ PlayerState playerState, String? playingFilePath, String? currentDictationId, int? currentRecordingIndex, bool isSequentialPlaying
 });
 
 
@@ -266,13 +270,14 @@ class __$AudioPlayerStateCopyWithImpl<$Res>
 
 /// Create a copy of AudioPlayerState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? playerState = null,Object? playingFilePath = freezed,Object? currentDictationId = freezed,Object? currentRecordingIndex = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? playerState = null,Object? playingFilePath = freezed,Object? currentDictationId = freezed,Object? currentRecordingIndex = freezed,Object? isSequentialPlaying = null,}) {
   return _then(_AudioPlayerState(
 playerState: null == playerState ? _self.playerState : playerState // ignore: cast_nullable_to_non_nullable
 as PlayerState,playingFilePath: freezed == playingFilePath ? _self.playingFilePath : playingFilePath // ignore: cast_nullable_to_non_nullable
 as String?,currentDictationId: freezed == currentDictationId ? _self.currentDictationId : currentDictationId // ignore: cast_nullable_to_non_nullable
 as String?,currentRecordingIndex: freezed == currentRecordingIndex ? _self.currentRecordingIndex : currentRecordingIndex // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,isSequentialPlaying: null == isSequentialPlaying ? _self.isSequentialPlaying : isSequentialPlaying // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
